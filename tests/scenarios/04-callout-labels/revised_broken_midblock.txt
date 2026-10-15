@@ -1,0 +1,5 @@
+Over the past decade, neural language models have reshaped natural language processing entirely.
+Moving beyond hand-built rules toward statistical and neural techniques unlocked performance that was previously out of reach.
+
+This review covers models trained between 2017 and 2024, focusing on encoder-decoder and decoder-only variants.
+Section 2 lays out background on sequence modelling, Section 3 covers the experimental setup, Section 4 presents results, and Section 5 discusses implications.

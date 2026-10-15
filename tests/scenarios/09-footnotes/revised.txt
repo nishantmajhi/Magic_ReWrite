@@ -1,0 +1,48 @@
+NLM.
+Early RNNs hit vanishing-gradient walls constraining long-range dependency modelling, until attention mechanisms arrived and unlocked the transformer era, changing everything about how sequence models are built from the ground up.
+This review covers models trained between 2017 and 2024, with particular attention to encoder-decoder and decoder-only variants.
+The remainder of this paper is organised as follows. Section 2 provides background on sequence modelling. Section 3 details the experimental setup. Section 4 presents results. Section 5 discusses implications and limitations.
+
+
+
+Sequence modelling is the task of estimating the probability distribution over sequences of discrete tokens.
+Autoregressive models factorise this joint distribution as a product of conditional probabilities, enabling efficient training via teacher forcing.
+Key insight: attention computes a weighted sum of value vectors, with weights derived from query-key dot products.
+
+
+
+Tokenisation choice significantly affects model capacity and downstream performance, and BPE now dominates as the practical middle ground between vocabulary size and sequence length, which is why almost every large production system defaults to some form of it today.
+- Character-level models: maximum coverage, very long sequences.
+- Word-level models: short sequences, large vocabularies, unknown-word problem.
+- Subword models (BPE, WordPiece, SentencePiece): practical compromise adopted by most production systems.
+
+
+
+4.2B tokens.
+The training split comprised 90% of the data, with the remaining 10% divided equally between validation and test sets.
+
+
+
+Four baseline architectures were evaluated, all trained under identical hyperparameters for a fair comparison across the board, covering encoder-only, decoder-only, and hybrid configurations spanning a wide range of parameter counts and training budgets.
+- Vanilla Transformer: standard encoder-decoder with learned positional embeddings.
+- RoBERTa-style encoder: masked language modelling with dynamic masking.
+- GPT-style decoder: causal language modelling with autoregressive generation.
+- Hybrid model: encoder for understanding tasks, decoder for generation tasks.
+
+
+
+Hybrid wins.
+Notably, the GPT-style decoder outperformed the vanilla transformer despite having fewer parameters, consistent with prior literature on the importance of causal masking for generative tasks.
+Error analysis: most failures involved nested relative clauses and long-distance dependencies exceeding 20 tokens, based on manual inspection of a random sample of misclassified outputs across every evaluation split we ran.
+
+
+
+Scale and architecture interact in non-trivial ways.
+Future work should investigate tokenisation granularity versus model size, and evaluation protocols need to move past aggregate scores.
+Limitations: this review skips multimodal, code-specific, and non-English-centric models.
+Despite these limitations, the findings provide actionable guidance for practitioners designing production language model pipelines.
+
+
+
+This paper reviewed the current state of neural language model research, covering architecture, training, and evaluation, with hybrid encoder-decoder designs coming out ahead on the perplexity-versus-downstream-performance trade-off across nearly every benchmark we examined in this survey.
+The rapid pace of progress means any review risks obsolescence, but scaling laws, attention efficiency, and robust tokenisation should remain relevant as the field evolves.

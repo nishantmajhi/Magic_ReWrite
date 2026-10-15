@@ -1,0 +1,1547 @@
+@font-face {
+  font-family: "Aptos";
+  src: local("Aptos");
+}
+:root {
+  /* ── Microsoft Word blue palette (File tab) ── */
+  --blue: #2b579a;
+  --blue-d: #1e3f72;
+  --blue-l: #eff6fc;
+  --blue-m: #deecf9;
+  --blue-b: #c7e0f4;
+  --gray: #f3f2f1;
+  --gray-m: #e1dfdd;
+  --gray-b: #d2d0ce;
+  --text: #323130;
+  --text-m: #605e5c;
+  --text-l: #a19f9d;
+  --white: #ffffff;
+  --red: #a4262c;
+  --green: #107c10;
+
+  /* ── Magic ReWrite dark/purple palette (Revise tab) ──
+           Canvas, chrome, and heading shades below are sampled directly
+           from Word's own dark theme for accurate, high-contrast parity. */
+  --sw-bg: #101010; /* app chrome (titlebar/ribbon/canvas) - sampled ~#0d0d0d */
+  --sw-surface: #181818; /* tab row / hover surfaces, between bg and card */
+  --sw-card: #262626; /* document page background - sampled #262626 */
+  --sw-border: #3a3a3a;
+  --sw-purple: #7c5cbf;
+  --sw-purple-d: #5c2d91;
+  --sw-purple-l: #9b7dd4;
+  --sw-purple-glow: rgba(124, 92, 191, 0.22);
+  --sw-text: #f2f2f2; /* body text - sampled ~#f6f6f6 */
+  --sw-text-m: #a0a0a0;
+  --sw-text-l: #666666;
+  --sw-heading: #8fa8e0; /* h1/h2 - sampled Word dark-mode heading blue */
+  --sw-heading-sub: #7c93c4; /* h3 - slightly dimmer for hierarchy, still high-contrast */
+  --sw-link: #7fb0ee; /* hyperlinks on the dark page - 6.7:1 on --sw-card.
+       The File tab's #0563c1 cannot be reused here: against #262626 it
+       measures 2.6:1. Left unset, links fall through to the browser default
+       #0000EE, which is 1.6:1 - and saturated pure blue on near-black also
+       triggers chromostereopsis, where the red and blue channels focus at
+       different depths and the text appears to swim off the page. Hence a
+       lighter, desaturated blue, kept in the same family as --sw-heading. */
+
+  /* Legacy aliases (kept for backward compat) */
+  --purple: #5c2d91;
+  --purple-l: #f3e9ff;
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+body {
+  font-family: "Aptos", "Nunito", "Segoe UI", system-ui, sans-serif;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--gray);
+}
+
+/* ── App shell ── */
+.word-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Title bar ── */
+.titlebar {
+  background: var(--blue);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 8px 0 0;
+  flex-shrink: 0;
+  user-select: none;
+  transition: background 0.35s ease;
+}
+.titlebar.sw-theme {
+  background: var(--sw-bg);
+}
+.tb-title {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding-bottom: 0;
+}
+
+/* ── Tab row ── */
+.tabrow {
+  background: var(--blue);
+  height: 32px;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 0 0 8px;
+  flex-shrink: 0;
+  transition: background 0.35s ease;
+}
+.tabrow.sw-theme {
+  background: var(--sw-bg);
+}
+
+/* Base tab - inactive on blue bg */
+.tab {
+  height: 28px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 3px 3px 0 0;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+  border-top: 2px solid transparent;
+  position: relative;
+}
+
+/* File tab - active state (Word blue) */
+.tab.file {
+  background: var(--white);
+  color: var(--blue);
+  font-weight: 700;
+  border-top: 3px solid #f9a825;
+}
+.tab.file:hover {
+  background: var(--white);
+  color: var(--blue);
+}
+
+/* File tab - inactive (when Insert is active, sw-theme on tabrow) */
+.tabrow.sw-theme .tab.file {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.55);
+  border-top-color: transparent;
+  font-weight: 400;
+}
+.tabrow.sw-theme .tab.file:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Insert tab - inactive on Word blue */
+.tab.insert-tab {
+  position: relative;
+}
+.tab.insert-tab:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+/* Insert tab - pulsing ready state */
+.tab.insert-tab.ready {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-weight: 600;
+  animation: insertPulse 1.8s ease-in-out infinite;
+}
+
+/* Revise tab - active state (Magic ReWrite dark) */
+.tab.insert-tab.active-insert {
+  background: var(--sw-surface);
+  color: #e8e8e8;
+  font-weight: 700;
+  border-top: 2px solid #4fc3f7;
+}
+.tab.insert-tab.active-insert:hover {
+  background: var(--sw-surface);
+  color: #e8e8e8;
+}
+
+/* Insert dot badge */
+.tab.insert-tab .insert-dot {
+  display: none;
+  width: 7px;
+  height: 7px;
+  background: #fff;
+  border-radius: 50%;
+  margin-left: 5px;
+  flex-shrink: 0;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
+}
+.tab.insert-tab.ready .insert-dot {
+  display: block;
+}
+
+@keyframes insertPulse {
+  0%,
+  100% {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    background: rgba(255, 255, 255, 0.22);
+  }
+}
+
+/* ── Ribbon area (background wrapper so margin gap matches app theme) ── */
+.ribbon-area {
+  background: var(--gray);
+  flex-shrink: 0;
+  transition: background 0.35s ease;
+}
+.ribbon-area.sw-theme {
+  background: var(--sw-bg);
+}
+
+/* ── Ribbon ── */
+.ribbon {
+  background: var(--white);
+  height: 72px;
+  margin: 6px 8px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--gray-b);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition:
+    background 0.35s,
+    border-color 0.35s,
+    box-shadow 0.35s;
+}
+.rg {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--gray-b);
+  padding: 0 6px;
+  flex-shrink: 0;
+  height: 100%;
+  justify-content: center;
+}
+.rg-inner {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.rb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 5px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  cursor: default;
+  font-size: 10px;
+  color: var(--text);
+  min-width: 32px;
+  gap: 2px;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
+  user-select: none;
+}
+.rb:hover {
+  background: var(--blue-l);
+  border-color: var(--blue-b);
+}
+.rb-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+.rb-txt {
+  font-size: 9.5px;
+  white-space: nowrap;
+}
+.rb.lg {
+  min-width: 48px;
+  padding: 5px 6px;
+  height: 70px;
+}
+.rb.lg .rb-icon {
+  font-size: 26px;
+}
+.rb-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.rb.sm {
+  flex-direction: row;
+  min-width: 0;
+  width: 100%;
+  padding: 2px 6px;
+  justify-content: flex-start;
+  height: 22px;
+  gap: 4px;
+}
+.rb.sm .rb-icon {
+  font-size: 12px;
+}
+.rb.sm .rb-txt {
+  font-size: 10px;
+}
+.fbox {
+  width: 88px;
+  height: 22px;
+  border: 1px solid var(--gray-b);
+  border-radius: 2px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  font-size: 11px;
+  cursor: default;
+}
+.fbox:hover {
+  border-color: var(--blue);
+}
+.fsz {
+  width: 36px;
+  height: 22px;
+  border: 1px solid var(--gray-b);
+  border-radius: 2px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  font-size: 11px;
+  cursor: default;
+}
+.fsz:hover {
+  border-color: var(--blue);
+}
+.frow {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  margin-bottom: 2px;
+}
+.rb-f {
+  width: 22px;
+  height: 22px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: default;
+  color: var(--text);
+  transition:
+    background 0.1s,
+    border-color 0.1s;
+}
+.rb-f:hover {
+  background: var(--blue-l);
+  border-color: var(--blue-b);
+}
+.rb-f.b {
+  font-weight: 900;
+}
+.rb-f.i {
+  font-style: italic;
+}
+.rb-f.u {
+  text-decoration: underline;
+}
+.sg {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.sp {
+  height: 56px;
+  min-width: 58px;
+  padding: 3px 5px;
+  border: 1px solid var(--gray-b);
+  border-radius: 2px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  font-size: 9.5px;
+  color: var(--text-m);
+  gap: 2px;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
+}
+.sp:hover {
+  background: var(--blue-l);
+  border-color: var(--blue-b);
+}
+.sp-p {
+  font-size: 8px;
+  color: var(--text);
+  line-height: 1.2;
+  text-align: center;
+}
+.sp.h1 .sp-p {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2f5496;
+}
+.sp.h2 .sp-p {
+  font-size: 9px;
+  font-weight: 700;
+  color: #2f5496;
+}
+.sp.tl .sp-p {
+  font-size: 11px;
+  color: #333;
+  font-style: italic;
+}
+.rg-spacer {
+  flex: 1;
+  border-right: 1px solid var(--gray-b);
+}
+
+/* Magic ReWrite ribbon group */
+.rg.sw {
+  background: var(--white);
+  border-left: none;
+}
+.swb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+  border: 1px solid var(--blue-b);
+  border-radius: 2px;
+  cursor: pointer;
+  background: #fff;
+  font-size: 9.5px;
+  color: var(--text);
+  gap: 3px;
+  height: 52px;
+  min-width: 60px;
+  font-family: "Aptos", "Nunito", "Segoe UI", sans-serif;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+.swb:hover {
+  background: var(--blue-m);
+  border-color: var(--blue);
+}
+.swb .si {
+  font-size: 18px;
+  line-height: 1;
+}
+.swb .st {
+  font-size: 9.5px;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1.3;
+}
+.swb.pri {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue-d);
+  min-width: 64px;
+}
+.swb.pri:hover {
+  background: var(--blue-d);
+}
+.swb.pri .st {
+  font-weight: 700;
+}
+.swb:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.swb-sec {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border: 1px solid var(--blue-b);
+  border-radius: 2px;
+  cursor: pointer;
+  background: #fff;
+  font-size: 9.5px;
+  color: var(--text-m);
+  gap: 4px;
+  height: 52px;
+  min-width: 60px;
+  font-family: "Aptos", "Nunito", "Segoe UI", sans-serif;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+.swb-sec:hover {
+  background: var(--blue-m);
+  border-color: var(--blue);
+  color: var(--text);
+}
+.swb-sec:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+.swb-sec .si {
+  font-size: 17px;
+  line-height: 1;
+}
+.swb-sec .st {
+  font-size: 9px;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* Revise ribbon - Magic ReWrite dark theme */
+.ribbon.insert-ribbon {
+  background: var(--sw-surface);
+  border-color: var(--sw-border);
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.4),
+    0 1px 3px rgba(0, 0, 0, 0.3);
+}
+.ribbon.insert-ribbon .rg {
+  background: var(--sw-surface) !important;
+  border-right-color: var(--sw-border);
+}
+.ribbon.insert-ribbon .rg.sw {
+  background: var(--sw-surface) !important;
+}
+/* All plain swb/swb-sec buttons inside insert ribbon go dark */
+.ribbon.insert-ribbon .swb {
+  background: #2e2e2e;
+  border-color: #484848;
+  color: #c8c8c8;
+}
+.ribbon.insert-ribbon .swb:hover {
+  background: #3d3d3d;
+  border-color: #4fc3f7;
+  color: #f0f0f0;
+}
+.swb.insert-pri,
+.ribbon.insert-ribbon .swb.insert-pri {
+  background: #2979a8;
+  color: #fff;
+  border-color: #1a5f8a;
+  min-width: 80px;
+  height: 52px;
+  box-shadow: 0 2px 8px rgba(41, 121, 168, 0.35);
+}
+.swb.insert-pri:hover,
+.ribbon.insert-ribbon .swb.insert-pri:hover {
+  background: #1a5f8a;
+  box-shadow: 0 3px 14px rgba(41, 121, 168, 0.5);
+}
+.swb.insert-pri .st {
+  font-weight: 700;
+}
+.swb.insert-pri:disabled,
+.ribbon.insert-ribbon .swb.insert-pri:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #2979a8;
+}
+/* Override default swb colors inside insert ribbon */
+.ribbon.insert-ribbon .swb-sec {
+  background: #323232;
+  border-color: #484848;
+  color: #c0c0c0;
+}
+.ribbon.insert-ribbon .swb-sec:hover {
+  background: #3d3d3d;
+  border-color: #4fc3f7;
+  color: #f0f0f0;
+}
+/* "How to use" text inside insert ribbon */
+.ribbon.insert-ribbon .insert-howto {
+  font-size: 10px;
+  color: #a8a8a8;
+  max-width: 280px;
+  line-height: 1.5;
+}
+.ribbon.insert-ribbon .insert-howto strong {
+  color: #e0e0e0;
+}
+
+/* ── App body ── */
+.app-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── Left pane ── */
+.left-pane {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-right: 1px solid var(--gray-b);
+  width: 876px;
+  transition:
+    width 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    flex 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    flex-shrink 0.55s;
+}
+.left-pane.insert-mode {
+  width: 460px;
+  flex-shrink: 0;
+}
+.ruler {
+  height: 22px;
+  flex-shrink: 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 23px,
+      rgba(0, 0, 0, 0.1) 24px
+    ),
+    linear-gradient(
+      to right,
+      var(--gray-m) 0%,
+      var(--gray-m) calc(50% - 312px),
+      #f8f8f8 calc(50% - 312px),
+      #f8f8f8 calc(50% + 312px),
+      var(--gray-m) calc(50% + 312px),
+      var(--gray-m) 100%
+    );
+  border-bottom: 1px solid var(--gray-b);
+  position: relative;
+}
+.ruler-corner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 22px;
+  background: var(--gray-m);
+  border-right: 1px solid var(--gray-b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  color: var(--text-l);
+}
+.doc-ws {
+  flex: 1;
+  overflow: auto;
+  background: #bebbb8;
+  padding: 28px 0;
+  position: relative;
+}
+.doc-ws.dragging {
+  background: #8ea9c8;
+}
+
+.doc-page {
+  background: #fff;
+  width: 816px;
+  min-height: 1056px;
+  margin: 0 auto;
+  padding: 96px 96px;
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+.doc-html {
+  font-family: "Calibri", "Segoe UI", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.15;
+  color: #000;
+}
+.doc-html p {
+  margin: 0 0 8pt;
+}
+.doc-html h1 {
+  font-family: "Calibri Light", "Calibri", Arial, sans-serif;
+  font-size: 20pt;
+  color: #2f5496;
+  font-weight: normal;
+  margin: 0 0 12pt;
+  line-height: 1.2;
+}
+.doc-html h2 {
+  font-family: "Calibri Light", "Calibri", Arial, sans-serif;
+  font-size: 16pt;
+  color: #2f5496;
+  font-weight: normal;
+  margin: 4pt 0 12pt;
+  line-height: 1.2;
+}
+.doc-html h3 {
+  font-family: "Calibri Light", "Calibri", Arial, sans-serif;
+  font-size: 12pt;
+  color: #1f3864;
+  font-style: italic;
+  font-weight: normal;
+  margin: 4pt 0 8pt;
+}
+.doc-html h4,
+.doc-html h5,
+.doc-html h6 {
+  font-size: 11pt;
+  color: #2f5496;
+  font-weight: 700;
+  margin: 0 0 8pt;
+}
+.doc-html strong {
+  font-weight: 700;
+}
+.doc-html em {
+  font-style: italic;
+}
+.doc-html ul {
+  margin: 0 0 8pt;
+  padding-left: 36pt;
+}
+.doc-html ol {
+  margin: 0 0 8pt;
+  padding-left: 36pt;
+}
+.doc-html li {
+  margin-bottom: 3pt;
+  line-height: 1.15;
+}
+.doc-html table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0 0 10pt;
+}
+.doc-html td,
+.doc-html th {
+  border: 1px solid #000;
+  padding: 3pt 5.4pt;
+  vertical-align: top;
+  font-size: 10pt;
+}
+.doc-html img {
+  max-width: 100%;
+  height: auto;
+}
+.doc-html a {
+  color: #0563c1;
+  text-decoration: underline;
+}
+.doc-html p:empty::after {
+  content: "\00A0";
+}
+
+/* Footnotes page -------------------------------------------------------
+   Same paper as the main canvas so it reads as part of the same document,
+   but sized to its content: a note list is usually a few lines, and a full
+   1056px page would be mostly empty space. The gap above it is what makes
+   it legible as a separate page rather than a continuation of the last
+   section on the one before. */
+.doc-page-notes {
+  min-height: 0;
+  margin-top: 28px;
+}
+.doc-page-notes ol {
+  margin-bottom: 0;
+}
+
+/* Drop / loading overlays */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: #fff;
+  z-index: 10;
+}
+.overlay.drag {
+  background: rgba(239, 246, 252, 0.96);
+}
+.ov-icon {
+  font-size: 44px;
+  opacity: 0.35;
+}
+.ov-title {
+  font-size: 14px;
+  color: var(--text-m);
+  font-weight: 500;
+}
+.ov-sub {
+  font-size: 11px;
+  color: var(--text-l);
+}
+.ov-btn {
+  padding: 6px 20px;
+  background: var(--blue);
+  color: #fff;
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  font-family: "Aptos", "Nunito", "Segoe UI", sans-serif;
+  margin-top: 2px;
+  transition: background 0.12s;
+}
+.ov-btn:hover {
+  background: var(--blue-d);
+}
+.spin-ring {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--blue-b);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.ov-msg {
+  font-size: 12px;
+  color: var(--text-m);
+}
+
+/* ── Right pane ── */
+.right-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: flex 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.rp-head {
+  height: 36px;
+  background: var(--blue);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 8px;
+  flex-shrink: 0;
+  transition: background 0.4s;
+}
+.rp-head.insert-head {
+  background: #1e3a4a;
+  border-bottom: 1px solid #2c5570;
+}
+.rp-title {
+  flex: 1;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+.rp-btn {
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: "Aptos", "Nunito", "Segoe UI", sans-serif;
+  transition: background 0.1s;
+  white-space: nowrap;
+}
+.rp-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+.rp-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+.rp-btn.ok {
+  background: rgba(16, 124, 16, 0.55);
+  border-color: rgba(16, 124, 16, 0.7);
+}
+.rp-sub {
+  height: 28px;
+  background: var(--blue-l);
+  border-bottom: 1px solid var(--blue-b);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 6px;
+  flex-shrink: 0;
+  transition:
+    background 0.4s,
+    border-color 0.4s;
+}
+.rp-sub.insert-sub {
+  background: #252525;
+  border-color: #3a3a3a;
+}
+.rp-sub-lbl {
+  font-size: 11px;
+  color: var(--text-m);
+  flex: 1;
+}
+.badge {
+  font-size: 10px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.bd-p {
+  background: var(--blue-m);
+  color: var(--blue);
+}
+.bd-l {
+  background: #ddf4ff;
+  color: #006cb8;
+}
+.bd-s {
+  background: #e8f4e8;
+  color: #276327;
+}
+.bd-t {
+  background: #eaf6ea;
+  color: var(--green);
+}
+/* Citations held out of the extracted text, to be restored after revision.
+   Amber rather than green: this is something being kept aside, not something
+   finished, and it wants to read differently from the other counts. */
+.bd-c {
+  background: #fff3d9;
+  color: #8a5a00;
+}
+.rp-body {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.rp-ws {
+  flex: 1;
+  overflow: auto;
+  background: #bebbb8;
+  padding: 28px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+/* ── Extracted text canvas (one or more per document) ── */
+.rp-canvas-wrap {
+  width: calc(100% - 32px);
+  max-width: 580px;
+  flex-shrink: 0;
+}
+.rp-canvas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--blue);
+  border-radius: 4px 4px 0 0;
+  padding: 5px 10px 5px 12px;
+  gap: 8px;
+}
+.rp-canvas-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.rp-canvas-words {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.55);
+}
+.rp-canvas-copy {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: "Aptos", "Nunito", "Segoe UI", sans-serif;
+  transition: background 0.1s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.rp-canvas-copy:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+.rp-canvas-copy.ok {
+  background: rgba(16, 124, 16, 0.55);
+  border-color: rgba(16, 124, 16, 0.7);
+}
+
+.rp-page {
+  background: #fff;
+  min-height: 400px;
+  padding: 42px 52px 36px;
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  border-radius: 0;
+  position: relative;
+}
+.rp-content {
+  font-family: "Calibri", "Segoe UI", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.55;
+  color: #000;
+  white-space: pre-wrap;
+  word-break: break-word;
+  outline: none;
+  caret-color: var(--blue);
+  min-height: 200px;
+}
+.rp-content:empty::before {
+  content: attr(data-ph);
+  color: var(--text-l);
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* ── Account toggle ── */
+.account-toggle {
+  display: flex;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.acct-btn {
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.65);
+  border: none;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: "Aptos", "Nunito", "Segoe UI", sans-serif;
+  transition:
+    background 0.12s,
+    color 0.12s;
+  white-space: nowrap;
+}
+.acct-btn + .acct-btn {
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
+}
+.acct-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+.acct-btn.active {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ── Ribbon separator ── */
+.ribbon-sep {
+  width: 1px;
+  height: 44px;
+  background: var(--blue-b);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+.ribbon.insert-ribbon .ribbon-sep {
+  background: var(--sw-border);
+}
+
+/* ── Copy button - always visible, solid contrast ── */
+.rp-copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--gray);
+  border: 1px solid var(--gray-b);
+  border-radius: 4px;
+  color: var(--text-m);
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+  z-index: 2;
+  padding: 0;
+}
+.rp-copy-btn:hover {
+  background: var(--blue-m);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.rp-copy-btn.ok {
+  background: #e8f4e8;
+  border-color: #8ac88a;
+  color: var(--green);
+}
+
+/* ── Canvas part badge (top-left, subtle) ── */
+.rp-canvas-badge {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-l);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Canvas word-count footer ── */
+.rp-canvas-wc {
+  margin-top: 14px;
+  font-size: 10px;
+  color: var(--text-l);
+  text-align: right;
+  pointer-events: none;
+}
+
+/* ── Left pane info header ── */
+.lp-head {
+  height: 36px;
+  background: var(--blue);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 6px;
+  flex-shrink: 0;
+  transition: background 0.4s;
+}
+.lp-head.insert-lp-head {
+  background: #1e3a4a;
+  border-bottom: 1px solid #2c5570;
+}
+.lp-icon {
+  font-size: 14px;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+.lp-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+.lp-sub {
+  height: 28px;
+  background: var(--blue-l);
+  border-bottom: 1px solid var(--blue-b);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 6px;
+  flex-shrink: 0;
+  transition:
+    background 0.4s,
+    border-color 0.4s;
+}
+.lp-sub.insert-lp-sub {
+  background: #252525;
+  border-color: #3a3a3a;
+}
+.lp-sub.insert-lp-sub .lp-sub-lbl {
+  color: #909090;
+}
+.lp-sub-lbl {
+  font-size: 11px;
+  color: var(--text-m);
+  flex: 1;
+}
+
+/* ── Revise mode: revised text paste pane (Magic ReWrite dark) ── */
+.humanized-ws {
+  flex: 1;
+  overflow: auto;
+  background: var(--sw-bg);
+  padding: 28px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+/* ── Revised text canvas wrap (one per canvas in revise mode) ── */
+.hum-canvas-wrap {
+  width: calc(100% - 32px);
+  max-width: 540px;
+  flex-shrink: 0;
+}
+.hum-canvas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1e3a4a;
+  border: 1px solid #2c5570;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  padding: 5px 10px 5px 12px;
+  gap: 8px;
+}
+.hum-canvas-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.hum-canvas-status {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  flex: 1;
+  text-align: right;
+}
+.hum-canvas-status.filled {
+  color: #4ade80;
+}
+.hum-canvas-status.partial {
+  color: #fbbf24;
+}
+
+.humanized-page {
+  background: var(--sw-card);
+  min-height: 200px;
+  padding: 32px 36px;
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.4),
+    0 0 0 1px var(--sw-border);
+  border-radius: 0;
+  flex-shrink: 0;
+}
+.humanized-content {
+  font-family: "Calibri", "Segoe UI", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.6;
+  color: var(--sw-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  outline: none;
+  min-height: 160px;
+  caret-color: #4fc3f7;
+}
+.humanized-content:empty::before {
+  content: attr(data-ph);
+  color: #555;
+  font-style: italic;
+  pointer-events: none;
+}
+/* Subtle paste-ready shimmer on empty canvases */
+.humanized-page.waiting {
+  animation: pasteShimmer 2.5s ease-in-out infinite;
+}
+@keyframes pasteShimmer {
+  0%,
+  100% {
+    box-shadow:
+      0 2px 10px rgba(0, 0, 0, 0.4),
+      0 0 0 1px var(--sw-border);
+  }
+  50% {
+    box-shadow:
+      0 4px 24px rgba(79, 195, 247, 0.2),
+      0 0 0 2px #4fc3f7;
+  }
+}
+
+/* Insert mode right pane - same dark theme as the paste panel (humanized-ws/page) */
+.humanized-doc-ws {
+  flex: 1;
+  overflow: auto;
+  background: var(--sw-bg);
+  padding: 28px 0;
+}
+.humanized-doc-page {
+  background: var(--sw-card);
+  width: 816px;
+  min-height: 1056px;
+  margin: 0 auto;
+  padding: 96px 96px;
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.4),
+    0 0 0 1px var(--sw-border);
+  position: relative;
+}
+.humanized-doc-html {
+  font-family: "Calibri", "Segoe UI", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.15;
+  color: var(--sw-text);
+}
+.humanized-doc-html p {
+  margin: 0 0 8pt;
+}
+.humanized-doc-html h1 {
+  font-family: "Calibri Light", "Calibri", Arial, sans-serif;
+  font-size: 20pt;
+  color: var(--sw-heading);
+  font-weight: normal;
+  margin: 0 0 12pt;
+  line-height: 1.2;
+}
+.humanized-doc-html h2 {
+  font-family: "Calibri Light", "Calibri", Arial, sans-serif;
+  font-size: 16pt;
+  color: var(--sw-heading);
+  font-weight: normal;
+  margin: 4pt 0 12pt;
+  line-height: 1.2;
+}
+.humanized-doc-html h3 {
+  font-family: "Calibri Light", "Calibri", Arial, sans-serif;
+  font-size: 12pt;
+  color: var(--sw-heading-sub);
+  font-style: italic;
+  font-weight: normal;
+  margin: 4pt 0 8pt;
+}
+.humanized-doc-html strong {
+  font-weight: 700;
+}
+.humanized-doc-html em {
+  font-style: italic;
+}
+.humanized-doc-html ul {
+  margin: 0 0 8pt;
+  padding-left: 36pt;
+}
+.humanized-doc-html ol {
+  margin: 0 0 8pt;
+  padding-left: 36pt;
+}
+.humanized-doc-html li {
+  margin-bottom: 3pt;
+  line-height: 1.15;
+}
+.humanized-doc-html table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0 0 10pt;
+}
+.humanized-doc-html td,
+.humanized-doc-html th {
+  border: 1px solid var(--sw-border);
+  padding: 3pt 5.4pt;
+  vertical-align: top;
+  font-size: 10pt;
+}
+.humanized-doc-html a {
+  color: var(--sw-link);
+  text-decoration: underline;
+}
+.humanized-doc-html p:empty::after {
+  content: "\00A0";
+}
+
+/* Panel labels */
+.panel-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0 10px;
+  color: var(--text-l);
+  flex-shrink: 0;
+}
+
+/* Insert right pane sub header */
+.rp-sub.insert-sub {
+  background: #252525;
+  border-bottom-color: #3a3a3a;
+}
+.rp-sub.insert-sub .rp-sub-lbl {
+  color: #909090;
+}
+
+/* Ribbon panel switcher */
+.ribbon-file {
+  display: flex;
+}
+.ribbon-insert {
+  display: none;
+}
+
+/* Download btn */
+.dl-btn {
+  padding: 3px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: "Aptos", "Nunito", "Segoe UI", sans-serif;
+  transition: background 0.1s;
+  white-space: nowrap;
+}
+.dl-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+.dl-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════════════
+         CUSTOM THEMED SCROLLBARS
+         Word-blue theme for File-mode panes,
+         Magic ReWrite purple/dark theme for Revise-mode panes.
+      ═══════════════════════════════════════════════ */
+
+/* File mode - document view + extracted text pane */
+.doc-ws,
+.rp-ws {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--blue) var(--gray-m); /* Firefox */
+}
+.doc-ws::-webkit-scrollbar,
+.rp-ws::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+.doc-ws::-webkit-scrollbar-track,
+.rp-ws::-webkit-scrollbar-track {
+  background: var(--gray-m);
+}
+.doc-ws::-webkit-scrollbar-thumb,
+.rp-ws::-webkit-scrollbar-thumb {
+  background: var(--blue);
+  border-radius: 7px;
+  border: 2px solid var(--gray-m);
+}
+.doc-ws::-webkit-scrollbar-thumb:hover,
+.rp-ws::-webkit-scrollbar-thumb:hover {
+  background: var(--blue-d);
+}
+.doc-ws::-webkit-scrollbar-corner,
+.rp-ws::-webkit-scrollbar-corner {
+  background: var(--gray-m);
+}
+
+/* Revise mode - revised text paste pane + revised doc preview */
+.humanized-ws,
+.humanized-doc-ws {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--sw-text-m) var(--sw-surface); /* Firefox */
+}
+.humanized-ws::-webkit-scrollbar,
+.humanized-doc-ws::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+.humanized-ws::-webkit-scrollbar-track,
+.humanized-doc-ws::-webkit-scrollbar-track {
+  background: var(--sw-surface);
+}
+.humanized-ws::-webkit-scrollbar-thumb,
+.humanized-doc-ws::-webkit-scrollbar-thumb {
+  background: var(--sw-text-m);
+  border-radius: 7px;
+  border: 2px solid var(--sw-surface);
+}
+.humanized-ws::-webkit-scrollbar-thumb:hover,
+.humanized-doc-ws::-webkit-scrollbar-thumb:hover {
+  background: var(--sw-text);
+}
+.humanized-ws::-webkit-scrollbar-corner,
+.humanized-doc-ws::-webkit-scrollbar-corner {
+  background: var(--sw-surface);
+}
+
+/* ── Scroll-to-top floating buttons ── */
+.scroll-top-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s,
+    background 0.15s,
+    transform 0.15s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.scroll-top-btn.visible {
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+}
+.scroll-top-btn:hover {
+  transform: translateY(-2px);
+}
+/* File tab - Word blue */
+.file-scroll-top {
+  background: var(--blue);
+  color: #fff;
+}
+.file-scroll-top:hover {
+  background: var(--blue-d);
+}
+/* Insert tab - teal accent */
+.insert-scroll-top {
+  background: #4fc3f7;
+  color: #0d1b22;
+}
+.insert-scroll-top:hover {
+  background: #29b6f6;
+}

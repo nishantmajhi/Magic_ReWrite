@@ -1,0 +1,8 @@
+Over the last decade, neural language models have reshaped natural language processing entirely. Moving away from hand-built rules toward statistical and neural techniques unlocked performance once thought impossible across a wide range of language tasks.
+
+Byte-pair encoding has become the standard choice for tokenisation, striking a workable balance between vocabulary size and how long the resulting sequences get.
+- Character-level models: they see everything, but sequences balloon in length.
+- Word-level models: sequences stay short, but vocabularies explode and rare words suffer.
+- Subword methods (BPE, WordPiece, SentencePiece): the practical sweet spot used by nearly every large system today.
+
+The hybrid model posted the strongest perplexity numbers on every benchmark tested, and it especially shined on the out-of-domain test split. This points to encoder-decoder combinations generalising more reliably than single-paradigm setups.

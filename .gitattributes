@@ -1,0 +1,8 @@
+# Compared byte for byte with the npm builds the tests run, so never
+# rewrite their line endings on checkout.
+vendor/*.js -text
+
+# Scenario fixtures: the text a user pastes back. The tests split it at
+# blank lines exactly as the app does, so CRLF on checkout (core.autocrlf)
+# made six checks fail in any fresh Windows clone.
+tests/scenarios/**/*.txt text eol=lf

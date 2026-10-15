@@ -1,0 +1,4 @@
+node_modules/
+
+# Written by every scenario run so a failure can be opened in Word.
+tests/scenarios/*/actual_output*.docx

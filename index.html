@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Magic ReWrite</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕵️</text></svg>"
+    />
+    <script src="vendor/mammoth.browser.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400;1,700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="word-app">
+      <!-- ── Title bar ── -->
+      <div class="titlebar">
+        <div class="tb-title" id="tbTitle">Magic ReWrite</div>
+      </div>
+
+      <!-- ── Tab row ── -->
+      <div class="tabrow">
+        <div class="tab file active" id="fileTab">File</div>
+        <div class="tab insert-tab" id="insertTab">
+          Insert <span class="insert-dot"></span>
+        </div>
+      </div>
+
+      <!-- ── Ribbon area ── -->
+      <div class="ribbon-area" id="ribbonArea">
+        <div class="ribbon" id="ribbonEl">
+          <!-- FILE ribbon -->
+          <div
+            class="ribbon-file"
+            id="ribbonFile"
+            style="flex: 1; align-items: center"
+          >
+            <div
+              class="rg sw"
+              style="border-left: none; border-right: none; flex: 1"
+            >
+              <div class="rg-inner" style="gap: 6px; padding: 0 10px">
+                <button class="swb pri" id="openBtn">
+                  <span class="si">📂</span>
+                  <span class="st">Open<br />Document</span>
+                </button>
+                <input
+                  type="file"
+                  accept=".docx"
+                  id="fileInp"
+                  style="display: none"
+                />
+                <div class="ribbon-sep"></div>
+                <button class="swb-sec" id="reextBtn" disabled>
+                  <span class="si">⚡</span>
+                  <span class="st">Re-extract</span>
+                </button>
+                <button class="swb-sec" id="closeBtn" disabled>
+                  <span class="si">✕</span>
+                  <span class="st">Close<br />Document</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- INSERT ribbon -->
+          <div
+            class="ribbon-insert"
+            id="ribbonInsert"
+            style="flex: 1; align-items: center"
+          >
+            <div
+              class="rg sw"
+              style="border-left: none; border-right: none; flex: 1"
+            >
+              <div class="rg-inner" style="gap: 6px; padding: 0 10px">
+                <button
+                  class="swb insert-pri"
+                  id="downloadHumanizedBtn"
+                  disabled
+                >
+                  <span class="si">💾</span>
+                  <span class="st">Download<br />docx</span>
+                </button>
+                <div class="ribbon-sep"></div>
+                <button class="swb-sec" id="recombineBtn" disabled>
+                  <span class="si">🔗</span>
+                  <span class="st">Re-combine</span>
+                </button>
+                <button class="swb-sec" id="closeBtnInsert">
+                  <span class="si">✕</span>
+                  <span class="st">Close<br />Document</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /ribbon-area -->
+
+      <!-- ── App body ── -->
+      <div class="app-body" id="appBody">
+        <!-- LEFT PANE -->
+        <div class="left-pane" id="leftPane">
+          <!-- File mode header -->
+          <div id="fileHeader">
+            <div class="lp-head">
+              <span class="lp-icon">📄</span>
+              <span class="lp-title" id="lpTitle">No document open</span>
+            </div>
+            <div class="lp-sub">
+              <span class="lp-sub-lbl" id="lpWords"
+                >Open a document to begin</span
+              >
+            </div>
+          </div>
+
+          <!-- Insert mode header -->
+          <div id="insertLeftHeader" style="display: none">
+            <div class="lp-head insert-lp-head">
+              <span class="lp-icon">✏️</span>
+              <span class="lp-title">Revised Text - Paste &amp; Edit</span>
+            </div>
+            <div class="lp-sub insert-lp-sub">
+              <span class="lp-sub-lbl" id="humanizedWords"
+                >Paste your revised text below</span
+              >
+            </div>
+          </div>
+
+          <!-- File mode: document preview -->
+          <div
+            id="fileDocView"
+            style="
+              display: flex;
+              flex-direction: column;
+              flex: 1;
+              overflow: hidden;
+              position: relative;
+            "
+          >
+            <button
+              class="scroll-top-btn file-scroll-top"
+              id="docScrollTop"
+              title="Scroll to top"
+              aria-label="Scroll to top"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2 10L7 4L12 10"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+            <div class="doc-ws" id="docWS">
+              <div class="doc-page" id="docPage">
+                <div class="doc-html" id="docHTML"></div>
+                <div class="overlay" id="initOv">
+                  <span class="ov-icon">📄</span>
+                  <div class="ov-title">Open a .docx file to get started</div>
+                  <div class="ov-sub">
+                    Drag &amp; drop here, or use the Open Document button
+                  </div>
+                  <button class="ov-btn" id="ovOpenBtn">
+                    📂 Open Document
+                  </button>
+                </div>
+                <div class="overlay" id="loadOv" style="display: none">
+                  <div class="spin-ring"></div>
+                  <div class="ov-msg" id="loadMsg">Reading document…</div>
+                </div>
+              </div>
+              <!-- Footnotes live on their own page. Mammoth appends them to
+                   the end of the body with no heading, where they read as
+                   entries of whatever section happens to come last. -->
+              <div class="doc-page doc-page-notes" id="docNotesPage" hidden>
+                <div class="doc-html" id="docNotesHtml"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Insert mode: revised text paste area -->
+          <div
+            id="insertPasteView"
+            style="
+              display: none;
+              flex-direction: column;
+              flex: 1;
+              overflow: hidden;
+              position: relative;
+            "
+          >
+            <div class="humanized-ws" id="humanizedWS">
+              <!-- canvases injected by JS -->
+            </div>
+            <button
+              class="scroll-top-btn insert-scroll-top"
+              id="humScrollTop"
+              title="Scroll to top"
+              aria-label="Scroll to top"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2 10L7 4L12 10"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <!-- /left-pane -->
+
+        <!-- RIGHT PANE -->
+        <div class="right-pane" id="rightPane">
+          <!-- File mode right pane -->
+          <div
+            id="fileRightPane"
+            style="
+              display: flex;
+              flex-direction: column;
+              flex: 1;
+              overflow: hidden;
+            "
+          >
+            <div class="rp-head" id="rpHead">
+              <span class="rp-title" id="rpTitle">Extracted Text</span>
+              <div class="account-toggle" id="accountToggle">
+                <button
+                  class="acct-btn"
+                  id="freeAcctBtn"
+                  title="Free account - split into ≤1000-word canvases"
+                >
+                  Free
+                </button>
+                <button
+                  class="acct-btn active"
+                  id="paidAcctBtn"
+                  title="Paid account - split into ≤5000-word canvases"
+                >
+                  Paid
+                </button>
+              </div>
+            </div>
+            <div class="rp-sub" id="rpSub">
+              <span id="rpBadges" style="display: flex; gap: 5px"></span>
+            </div>
+            <div class="rp-body">
+              <div class="rp-ws" id="rpWS">
+                <!-- extracted canvas(es) injected by JS -->
+              </div>
+              <button
+                class="scroll-top-btn file-scroll-top"
+                id="rpScrollTop"
+                title="Scroll to top"
+                aria-label="Scroll to top"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2 10L7 4L12 10"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Insert mode right pane: live document preview -->
+          <div
+            id="insertRightPane"
+            style="
+              display: none;
+              flex-direction: column;
+              flex: 1;
+              overflow: hidden;
+              position: relative;
+            "
+          >
+            <div class="rp-head insert-head">
+              <span class="rp-title" id="insertRpTitle"
+                >Revised Document Preview</span
+              >
+            </div>
+            <div class="rp-sub insert-sub">
+              <span class="rp-sub-lbl" id="insertRpSub"
+                >Paste revised text on the left to see a live preview</span
+              >
+            </div>
+            <div class="humanized-doc-ws" id="humanizedDocWS">
+              <div class="humanized-doc-page" id="humanizedDocPage">
+                <div class="humanized-doc-html" id="humanizedDocHtml">
+                  <p style="color: #888; font-style: italic">
+                    The document preview will appear here as you paste revised
+                    text on the left. Paragraphs are replaced live - you can
+                    paste one canvas at a time.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="humanized-doc-page doc-page-notes"
+                id="humanizedDocNotesPage"
+                hidden
+              >
+                <div
+                  class="humanized-doc-html"
+                  id="humanizedDocNotesHtml"
+                ></div>
+              </div>
+            </div>
+            <button
+              class="scroll-top-btn insert-scroll-top"
+              id="humDocScrollTop"
+              title="Scroll to top"
+              aria-label="Scroll to top"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2 10L7 4L12 10"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <!-- /right-pane -->
+      </div>
+      <!-- /app-body -->
+    </div>
+    <!-- /word-app -->
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

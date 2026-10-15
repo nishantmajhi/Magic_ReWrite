@@ -1,0 +1,4 @@
+R&D teams often ask: "is x < y always true when y > x?" Neural language models have reshaped natural language processing entirely (see the AT&T archives for early precedent).
+Moving beyond hand-built rules toward statistical & neural techniques <unlocked> performance that was previously out of reach -- especially for low-resource languages.
+This review covers models trained between 2017 and 2024, focusing on encoder-decoder & decoder-only variants (cf. "Attention Is All You Need").
+Section 2 lays out background; Section 3 covers < the experimental setup >; Section 4 presents results & Section 5 discusses “implications” - including em-dashes, curly quotes, and math symbols like x₁, ∑ᵢ, and ≈.

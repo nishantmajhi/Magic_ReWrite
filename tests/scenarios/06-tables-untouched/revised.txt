@@ -1,0 +1,17 @@
+Model
+Vanilla Transformer
+RoBERTa Encoder
+GPT Decoder
+Hybrid Model
+
+Parameters
+999M
+999M
+999M
+999M
+
+Training Steps
+1
+1
+1
+1

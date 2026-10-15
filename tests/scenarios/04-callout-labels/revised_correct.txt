@@ -1,0 +1,22 @@
+Over the past decade, neural language models have reshaped natural language processing entirely.
+Moving beyond hand-built rules toward statistical and neural techniques unlocked performance that was previously out of reach.
+This review covers models trained between 2017 and 2024, focusing on encoder-decoder and decoder-only variants.
+Section 2 lays out background on sequence modelling, Section 3 covers the experimental setup, Section 4 presents results, and Section 5 discusses implications.
+
+
+
+Sequence modelling means estimating a probability distribution over sequences of discrete tokens, given a vocabulary and a token sequence.
+Autoregressive models factor this joint distribution into a product of conditional probabilities, enabling efficient training via teacher forcing.
+KEY INSIGHT: attention computes a weighted sum of value vectors, with weights derived from query-key dot products.
+
+
+
+The hybrid model posted the lowest perplexity on every benchmark, doing especially well on the out-of-domain test split.
+The GPT-style decoder also beat the vanilla transformer despite having fewer parameters, echoing prior literature on causal masking.
+Error analysis: manual review of failures showed most errors involved nested relative clauses and dependencies spanning more than 20 tokens.
+
+
+
+Taken together, the results show scale and architecture interact in non-trivial ways, with diminishing returns past a certain parameter count.
+Future work should dig into how tokenisation granularity interacts with model size, and evaluation protocols need to move past aggregate scores.
+Limitations: this survey skips multimodal models, code-specific models, and models trained mainly on non-English text.

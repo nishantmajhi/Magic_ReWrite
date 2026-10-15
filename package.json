@@ -1,0 +1,18 @@
+{
+  "name": "magic-rewrite",
+  "version": "1.0.0",
+  "license": "SEE LICENSE IN LICENSE",
+  "private": true,
+  "type": "module",
+  "description": "Browser-based .docx round trip: extract body text, revise it elsewhere, write it back into the original document",
+  "scripts": {
+    "test": "node --test",
+    "test:browser": "node tests/browser/run.mjs"
+  },
+  "devDependencies": {
+    "@xmldom/xmldom": "0.9.10",
+    "jsdom": "30.0.1",
+    "jszip": "3.10.1",
+    "mammoth": "1.12.0"
+  }
+}

@@ -1,0 +1,12 @@
+Picking the right tokenisation strategy has a big impact on model capacity and how well it does downstream. BPE is now the go-to choice, trading off vocabulary size against sequence length.
+- Character-level models: see everything, but sequences get extremely long.
+- Word-level models: sequences stay short, but vocabularies balloon and rare words are a problem.
+- Subword models (BPE, WordPiece, SentencePiece): the practical middle ground most production systems land on.
+
+
+
+Four baseline setups were tested to give a well-rounded comparison, all trained with matching hyperparameters for a fair fight.
+Vanilla Transformer: a standard encoder-decoder using learned positional embeddings.
+RoBERTa-style encoder: masked-language-modelling with dynamic masking.
+1. GPT-style decoder: causal language modelling for autoregressive generation.
+Hybrid model: an encoder for understanding paired with a decoder for generation.

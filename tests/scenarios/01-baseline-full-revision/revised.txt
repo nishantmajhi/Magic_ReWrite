@@ -1,0 +1,63 @@
+Over the last ten years, neural language models have completely changed the landscape of natural language processing. The move away from hand-crafted rules toward statistical and neural methods has unlocked performance levels that were previously unimaginable across diverse linguistic tasks.
+Early recurrent networks, though revolutionary in their day, ran into the problem of vanishing gradients, which capped their ability to capture dependencies that span many tokens. Introducing attention-based mechanisms solved a lot of these problems and opened the door to the transformer era.
+This review covers models trained between 2017 and 2024, with particular attention to encoder-decoder and decoder-only variants.
+The rest of this paper is laid out as follows. Section 2 sets out the background on sequence modelling. Section 3 covers experimental design. Section 4 presents the results. Section 5 explores implications and limitations.
+
+Sequence modelling refers to the problem of learning a probability distribution over sequences of discrete symbols. Given a vocabulary V and a token sequence x₁, x₂, …, xₙ, a language model assigns a probability p(x₁, …, xₙ) to that sequence.
+Autoregressive models decompose this joint distribution into a product of conditional terms: p(x₁, …, xₙ) = ∏ᵢ p(xᵢ | x₁, …, xᵢ₋₁). This framing supports efficient training through teacher forcing and step-by-step sampling at inference time.
+The attention mechanism computes a weighted sum of value vectors, where weights are derived from query-key dot products.
+
+Tokenisation choices have a major bearing on how well a model can learn and how it performs on downstream benchmarks. Byte-pair encoding has emerged as the go-to approach, offering a practical balance between vocabulary size and sequence length.
+- Character-level models: comprehensive coverage of any input, but sequences become very long.
+- Word-level models: short sequences but huge vocabularies and poor handling of rare words.
+- Subword methods (BPE, WordPiece, SentencePiece): the pragmatic middle ground now used by almost all large-scale systems.
+
+All experiments used a carefully assembled corpus totalling 4.2 billion tokens, sourced from web crawls, book collections, and scientific literature. Near-duplicate documents were identified and removed via MinHash LSH, applying a Jaccard similarity threshold of 0.85.
+Ninety percent of this data formed the training set, with the remaining ten percent split evenly between validation and test partitions. Care was taken to balance the domain mix so no single genre dominated.
+Figure 1. Training loss curves across model sizes.
+
+A total of four baseline architectures were included to enable a thorough comparative analysis. Every baseline was trained under the same hyperparameter regime to guarantee fair comparisons across settings.
+- Vanilla Transformer: a conventional encoder-decoder built with learned positional embeddings.
+- RoBERTa-style encoder: trained with masked language modelling and dynamic masking schedules.
+- GPT-style decoder: trained with causal language modelling for autoregressive text generation.
+- Hybrid model: pairs an encoder for comprehension tasks with a decoder for generation tasks.
+
+Model
+Vanilla Transformer
+RoBERTa Encoder
+GPT Decoder
+Hybrid Model
+
+Parameters
+110M
+125M
+117M
+240M
+
+Training Steps
+500K
+1M
+750K
+1M
+
+Perplexity
+28.4
+N/A (MLM)
+21.7
+19.3
+Table 1. Summary of baseline model configurations and perplexity scores.
+
+The hybrid model recorded the best perplexity scores across every evaluation benchmark, with especially impressive results on the out-of-domain test portion. These findings suggest that combining encoder and decoder components leads to more resilient generalisation compared with single-paradigm designs.
+The GPT-style decoder notably beat the vanilla transformer even though it had fewer total parameters. This aligns with prior work in the field and underlines how important causal masking is for models focused on generation.
+Manual inspection of failure cases revealed that most errors occurred on sentences with nested relative clauses and long-distance dependencies exceeding 20 tokens.
+
+Fine-tuning experiments conducted on GLUE and SuperGLUE confirmed that pre-training at scale yields clear dividends. On SuperGLUE specifically, the hybrid model reached top results on five of the nine tasks without any task-specific changes to the architecture.
+Transfer learning gains were uneven across different task categories. Tasks requiring syntactic understanding, such as natural language inference, saw the greatest lifts, while commonsense reasoning tasks responded more modestly to pre-training.
+
+The findings of this review make clear that scale and architecture interact in complicated ways. Piling on more parameters without rethinking the underlying design produces progressively smaller returns past a certain point.
+Follow-on research should look more carefully at how tokenisation granularity and model scale interact. There is also clear demand for evaluation frameworks that are more rigorous than simple aggregate benchmark numbers and that can probe fine-grained linguistic abilities.
+This review does not cover multimodal models, code-specific models, or models trained primarily on non-English corpora.
+Even acknowledging these gaps, the results offer practical direction for engineers building production-grade language model systems. Both the available compute budget and the nature of the target task should factor into decisions about architecture and tokenisation approach.
+
+This paper has surveyed neural language model research across the dimensions of architecture, training methodology, and evaluation. The empirical evidence shows that hybrid encoder-decoder designs strike the best balance between perplexity reduction and downstream task performance.
+The speed of advancement in this field means that any survey faces the risk of becoming dated quickly. That said, the foundational principles covered here - including scaling behaviour, efficient attention, and principled tokenisation - should remain central to the field for the foreseeable future.

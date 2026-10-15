@@ -1,0 +1,7 @@
+Please read this disclaimer carefully - first appearance, version ONE.
+
+Section A contains additional context that is unique to this part of the document, now reworded slightly.
+
+Please read this disclaimer carefully - second appearance, version TWO.
+
+Section B contains different unique context that has nothing to do with Section A, also reworded.
